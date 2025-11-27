@@ -49,7 +49,7 @@ func NewAuthService(userRepo *postgres.UserRepository, tokenRepo *redis.TokenRep
 }
 
 func (s *AuthService) Register(ctx context.Context, req *models.CreateUserRequest) (*models.AuthResponse, error) {
-	// Проверяем, существует ли пользователь
+
 	existingUser, err := s.userRepo.GetUserByEmail(ctx, req.Email)
 	if err != nil {
 		return nil, err
@@ -58,7 +58,6 @@ func (s *AuthService) Register(ctx context.Context, req *models.CreateUserReques
 		return nil, errors.New("user already exists")
 	}
 
-	// Создаем пользователя
 	user := &models.User{
 		Email:    req.Email,
 		Nickname: req.Nickname,
@@ -72,7 +71,6 @@ func (s *AuthService) Register(ctx context.Context, req *models.CreateUserReques
 		return nil, err
 	}
 
-	// Генерируем токены
 	tokens, err := s.generateTokens(user)
 	if err != nil {
 		return nil, err
@@ -111,24 +109,21 @@ func (s *AuthService) Login(ctx context.Context, req *models.LoginRequest) (*mod
 }
 
 func (s *AuthService) RefreshTokens(ctx context.Context, refreshToken string) (*models.TokenPair, error) {
-	// Проверяем, не в черном списке ли токен
+
 	if blacklisted, err := s.tokenRepo.IsTokenBlacklisted(ctx, refreshToken); err != nil || blacklisted {
 		return nil, ErrTokenInvalid
 	}
 
-	// Валидируем refresh token
 	claims, err := s.validateToken(refreshToken, s.jwtConfig.RefreshTokenSecret)
 	if err != nil {
 		return nil, ErrTokenInvalid
 	}
 
-	// Проверяем, существует ли токен в Redis
 	_, err = s.tokenRepo.GetRefreshToken(ctx, claims.UserID)
 	if err != nil {
 		return nil, err
 	}
 
-	// Получаем пользователя
 	user, err := s.userRepo.GetUserByID(ctx, claims.UserID)
 	if err != nil {
 		return nil, err
@@ -137,20 +132,18 @@ func (s *AuthService) RefreshTokens(ctx context.Context, refreshToken string) (*
 		return nil, ErrUserNotFound
 	}
 
-	// Генерируем новые токены
 	tokens, err := s.generateTokens(user)
 	if err != nil {
 		return nil, err
 	}
 
-	// Старый refresh token добавляем в черный список
 	s.tokenRepo.StoreBlacklistedToken(ctx, refreshToken, s.jwtConfig.RefreshTokenExpiry)
 
 	return tokens, nil
 }
 
 func (s *AuthService) Logout(ctx context.Context, accessToken, refreshToken string, userID uuid.UUID) error {
-	// Добавляем токены в черный список
+
 	if err := s.tokenRepo.StoreBlacklistedToken(ctx, accessToken, s.jwtConfig.AccessTokenExpiry); err != nil {
 		return err
 	}
@@ -158,7 +151,6 @@ func (s *AuthService) Logout(ctx context.Context, accessToken, refreshToken stri
 		return err
 	}
 
-	// Удаляем refresh token из Redis
 	return s.tokenRepo.DeleteRefreshToken(ctx, userID)
 }
 
@@ -167,13 +159,12 @@ func (s *AuthService) ValidateToken(token string) (*Claims, error) {
 }
 
 func (s *AuthService) generateTokens(user *models.User) (*models.TokenPair, error) {
-	// Access token
+
 	accessToken, err := s.generateAccessToken(user)
 	if err != nil {
 		return nil, err
 	}
 
-	// Refresh token
 	refreshToken, err := s.generateRefreshToken(user)
 	if err != nil {
 		return nil, err
@@ -220,7 +211,6 @@ func (s *AuthService) generateRefreshToken(user *models.User) (string, error) {
 		return "", err
 	}
 
-	// Сохраняем refresh token в Redis
 	ctx := context.Background()
 	if err := s.tokenRepo.StoreRefreshToken(ctx, user.ID, tokenID, s.jwtConfig.RefreshTokenExpiry); err != nil {
 		return "", err

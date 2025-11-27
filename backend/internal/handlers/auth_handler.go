@@ -99,7 +99,6 @@ func (h *AuthHandler) Logout(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Получаем access token из заголовка
 	authHeader := r.Header.Get("Authorization")
 	if authHeader == "" {
 		http.Error(w, "Authorization header required", http.StatusBadRequest)
@@ -108,7 +107,6 @@ func (h *AuthHandler) Logout(w http.ResponseWriter, r *http.Request) {
 
 	accessToken := strings.TrimPrefix(authHeader, "Bearer ")
 
-	// Получаем user ID из контекста (добавляется middleware)
 	userID, ok := r.Context().Value("user_id").(uuid.UUID)
 	if !ok {
 		http.Error(w, "User not authenticated", http.StatusUnauthorized)

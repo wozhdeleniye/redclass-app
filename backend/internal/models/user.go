@@ -9,7 +9,7 @@ import (
 )
 
 type User struct {
-	ID           uuid.UUID      `json:"id" gorm:"type:uuid;primary_key;default:uuid_generate_v4()"`
+	ID           uuid.UUID      `json:"id" gorm:"type:uuid;primary_key;default:gen_random_uuid()"`
 	Email        string         `json:"email" gorm:"uniqueIndex;not null"`
 	PasswordHash string         `json:"-" gorm:"not null"`
 	Nickname     string         `json:"nickname" gorm:"not null"`
@@ -17,6 +17,8 @@ type User struct {
 	CreatedAt    time.Time      `json:"created_at"`
 	UpdatedAt    time.Time      `json:"updated_at"`
 	DeletedAt    gorm.DeletedAt `json:"-" gorm:"index"`
+
+	Roles []*Role `json:"roles" gorm:"foreignKey:UserID;constraint:OnDelete:CASCADE"`
 }
 
 type CreateUserRequest struct {
@@ -41,7 +43,6 @@ type TokenPair struct {
 	RefreshToken string `json:"refresh_token"`
 }
 
-// Хуки GORM
 func (u *User) BeforeCreate(tx *gorm.DB) error {
 	if u.ID == uuid.Nil {
 		u.ID = uuid.New()

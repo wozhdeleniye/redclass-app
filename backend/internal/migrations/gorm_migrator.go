@@ -29,6 +29,9 @@ func (m *GormMigrator) Migrate() error {
 
 	err = m.db.AutoMigrate(
 		&models.User{},
+		&models.Subject{},
+		&models.Role{},
+		&models.Task{},
 	)
 	return err
 }

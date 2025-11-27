@@ -17,10 +17,8 @@ import (
 )
 
 func main() {
-	// Загрузка конфигурации
 	cfg := config.Load()
 
-	// Подключение к PostgreSQL
 	db, err := database.NewPostgresConnection(
 		cfg.Database.Host,
 		cfg.Database.Port,
@@ -36,7 +34,6 @@ func main() {
 	migrator := migrations.NewGormMigrator(db)
 	migrator.Migrate()
 
-	// Подключение к Redis
 	redisClient, err := redis.NewRedisConnection(
 		cfg.Redis.Host,
 		cfg.Redis.Port,
@@ -48,33 +45,62 @@ func main() {
 	}
 	defer redisClient.Close()
 
-	// Инициализация репозиториев
 	userRepo := postgres.NewUserRepository(db)
+	subjectRepo := postgres.NewSubjectRepository(db)
+	roleRepo := postgres.NewRoleRepository(db)
+	taskRepo := postgres.NewTaskRepository(db)
 	tokenRepo := redisrepo.NewTokenRepository(redisClient)
 
-	// Инициализация сервисов
 	authService := services.NewAuthService(userRepo, tokenRepo, cfg.JWT)
+	subjectService := services.NewSubjectService(subjectRepo, roleRepo, userRepo)
+	roleService := services.NewRoleService(roleRepo)
+	taskService := services.NewTaskService(taskRepo, roleRepo, subjectRepo)
 
-	// Инициализация обработчиков
 	authHandler := handlers.NewAuthHandler(authService)
+	subjectHandler := handlers.NewSubjectHandler(subjectService)
+	roleHandler := handlers.NewRoleHandler(roleService)
+	taskHandler := handlers.NewTaskHandler(taskService)
 
-	// Инициализация middleware
 	authMiddleware := middleware.NewAuthMiddleware(authService)
 
-	// Настройка маршрутов
 	r := mux.NewRouter()
 
-	// Public routes
+	// auth
 	r.HandleFunc("/api/auth/register", authHandler.Register).Methods("POST")
 	r.HandleFunc("/api/auth/login", authHandler.Login).Methods("POST")
 	r.HandleFunc("/api/auth/refresh", authHandler.Refresh).Methods("POST")
 
-	// Protected routes
 	protected := r.PathPrefix("/api/auth").Subrouter()
 	protected.Use(authMiddleware.Authenticate)
 	protected.HandleFunc("/logout", authHandler.Logout).Methods("POST")
 
-	// Запуск сервера
+	// предмет паблик
+	r.HandleFunc("/api/subjects", subjectHandler.GetAllSubjects).Methods("GET")
+	r.HandleFunc("/api/subjects/{id}", subjectHandler.GetSubject).Methods("GET")
+	r.HandleFunc("/api/subjects/{id}/tasks", taskHandler.GetSubjectTasks).Methods("GET")
+	r.HandleFunc("/api/subjects/{id}/members", roleHandler.GetSubjectMembers).Methods("GET")
+	r.HandleFunc("/api/tasks/{taskId}", taskHandler.GetTask).Methods("GET")
+
+	// защищенные
+	protectedRouter := r.PathPrefix("/api").Subrouter()
+	protectedRouter.Use(authMiddleware.Authenticate)
+
+	// прдмет
+	protectedRouter.HandleFunc("/subjects", subjectHandler.CreateSubject).Methods("POST")
+	protectedRouter.HandleFunc("/subjects/{id}", subjectHandler.UpdateSubject).Methods("PUT")
+	protectedRouter.HandleFunc("/subjects/{id}", subjectHandler.DeleteSubject).Methods("DELETE")
+	protectedRouter.HandleFunc("/subjects/join", subjectHandler.JoinSubject).Methods("POST")
+	protectedRouter.HandleFunc("/subjects/my", subjectHandler.GetMySubjects).Methods("GET")
+
+	// роль
+	protectedRouter.HandleFunc("/subjects/{id}/roles/{roleId}/change", roleHandler.ChangeRole).Methods("POST")
+	protectedRouter.HandleFunc("/subjects/{id}/roles/{roleId}", roleHandler.RemoveFromSubject).Methods("DELETE")
+
+	// задачи
+	protectedRouter.HandleFunc("/subjects/{id}/tasks", taskHandler.CreateTask).Methods("POST")
+	protectedRouter.HandleFunc("/tasks/{taskId}", taskHandler.UpdateTask).Methods("PUT")
+	protectedRouter.HandleFunc("/tasks/{taskId}", taskHandler.DeleteTask).Methods("DELETE")
+
 	log.Printf("Server starting on port %s", cfg.Server.Port)
 	log.Fatal(http.ListenAndServe(":"+cfg.Server.Port, r))
 }
