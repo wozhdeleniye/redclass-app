@@ -49,17 +49,20 @@ func main() {
 	subjectRepo := postgres.NewSubjectRepository(db)
 	roleRepo := postgres.NewRoleRepository(db)
 	taskRepo := postgres.NewTaskRepository(db)
+	projectRepo := postgres.NewProjectRepository(db)
 	tokenRepo := redisrepo.NewTokenRepository(redisClient)
 
 	authService := services.NewAuthService(userRepo, tokenRepo, cfg.JWT)
 	subjectService := services.NewSubjectService(subjectRepo, roleRepo, userRepo)
 	roleService := services.NewRoleService(roleRepo)
 	taskService := services.NewTaskService(taskRepo, roleRepo, subjectRepo)
+	projectService := services.NewProjectService(projectRepo, taskRepo, roleRepo)
 
 	authHandler := handlers.NewAuthHandler(authService)
 	subjectHandler := handlers.NewSubjectHandler(subjectService)
 	roleHandler := handlers.NewRoleHandler(roleService)
 	taskHandler := handlers.NewTaskHandler(taskService)
+	projectHandler := handlers.NewProjectHandler(projectService)
 
 	authMiddleware := middleware.NewAuthMiddleware(authService)
 
@@ -100,6 +103,12 @@ func main() {
 	protectedRouter.HandleFunc("/subjects/{id}/tasks", taskHandler.CreateTask).Methods("POST")
 	protectedRouter.HandleFunc("/tasks/{taskId}", taskHandler.UpdateTask).Methods("PUT")
 	protectedRouter.HandleFunc("/tasks/{taskId}", taskHandler.DeleteTask).Methods("DELETE")
+
+	// проекты
+	r.HandleFunc("/api/tasks/{taskId}/projects", projectHandler.GetTaskProjects).Methods("GET")
+	protectedRouter.HandleFunc("/tasks/{taskId}/projects", projectHandler.CreateProject).Methods("POST")
+	protectedRouter.HandleFunc("/projects/join", projectHandler.JoinProject).Methods("POST")
+	protectedRouter.HandleFunc("/projects/my", projectHandler.GetMyProjects).Methods("GET")
 
 	log.Printf("Server starting on port %s", cfg.Server.Port)
 	log.Fatal(http.ListenAndServe(":"+cfg.Server.Port, r))
