@@ -13,11 +13,12 @@ import (
 
 type ProblemHandler struct {
 	problemService *services.ProblemService
+	resultService  *services.ResultService
 	validate       *validator.Validate
 }
 
-func NewProblemHandler(ps *services.ProblemService) *ProblemHandler {
-	return &ProblemHandler{problemService: ps, validate: validator.New()}
+func NewProblemHandler(ps *services.ProblemService, rs *services.ResultService) *ProblemHandler {
+	return &ProblemHandler{problemService: ps, resultService: rs, validate: validator.New()}
 }
 
 // CreateProblem создает проблему в проекте (POST /api/projects/{projectId}/problems)
@@ -178,9 +179,27 @@ func (h *ProblemHandler) GetProblem(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
+	var result *models.Result
+	// Также пытаемся получить результат для этой проблемы (может отсутствовать)
+	if problem.Solved {
+		if h.resultService != nil {
+			res, err := h.resultService.GetResult(r.Context(), userID, problemID)
+			if err == nil {
+				result = res
+			}
+		}
+	}
+
+	resp := struct {
+		Problem *models.Problem `json:"problem"`
+		Result  *models.Result  `json:"result,omitempty"`
+	}{
+		Problem: problem,
+		Result:  result,
+	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(problem)
+	json.NewEncoder(w).Encode(resp)
 }
 
 // GetProjectProblems получает все проблемы проекта (GET /api/projects/{projectId}/problems)

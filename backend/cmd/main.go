@@ -51,6 +51,7 @@ func main() {
 	taskRepo := postgres.NewTaskRepository(db)
 	projectRepo := postgres.NewProjectRepository(db)
 	problemRepo := postgres.NewProblemRepository(db)
+	resultRepo := postgres.NewResultRepository(db)
 	tokenRepo := redisrepo.NewTokenRepository(redisClient)
 
 	authService := services.NewAuthService(userRepo, tokenRepo, cfg.JWT)
@@ -58,6 +59,7 @@ func main() {
 	roleService := services.NewRoleService(roleRepo)
 	taskService := services.NewTaskService(taskRepo, roleRepo, subjectRepo)
 	projectService := services.NewProjectService(projectRepo, taskRepo, roleRepo, problemRepo)
+	resultService := services.NewResultService(resultRepo, problemRepo, projectRepo)
 	problemService := services.NewProblemService(problemRepo, projectRepo)
 
 	authHandler := handlers.NewAuthHandler(authService)
@@ -65,7 +67,8 @@ func main() {
 	roleHandler := handlers.NewRoleHandler(roleService)
 	taskHandler := handlers.NewTaskHandler(taskService)
 	projectHandler := handlers.NewProjectHandler(projectService)
-	problemHandler := handlers.NewProblemHandler(problemService)
+	problemHandler := handlers.NewProblemHandler(problemService, resultService)
+	resultHandler := handlers.NewResultHandler(resultService)
 
 	authMiddleware := middleware.NewAuthMiddleware(authService)
 
@@ -97,7 +100,7 @@ func main() {
 	protectedRouter := r.PathPrefix("/api").Subrouter()
 	protectedRouter.Use(authMiddleware.Authenticate)
 
-	// предметы - специфичные роуты ПЕРЕД общими паттернами
+	// предметы
 	protectedRouter.HandleFunc("/subjects/get/my", subjectHandler.GetMySubjects).Methods("GET", "OPTIONS")
 	protectedRouter.HandleFunc("/subjects/join", subjectHandler.JoinSubject).Methods("POST", "OPTIONS")
 	protectedRouter.HandleFunc("/subjects", subjectHandler.CreateSubject).Methods("POST", "OPTIONS")
@@ -111,23 +114,24 @@ func main() {
 	// задания
 	protectedRouter.HandleFunc("/subjects/{id}/tasks", taskHandler.CreateTask).Methods("POST", "OPTIONS")
 	protectedRouter.HandleFunc("/tasks/{taskId}", taskHandler.UpdateTask).Methods("PUT", "OPTIONS")
-	protectedRouter.HandleFunc("/tasks/{taskId}", taskHandler.DeleteTask).Methods("DELETE", "OPTIONS")
 
-	// проекты - специфичные роуты ПЕРЕД общими паттернами
+	// проекты
 	protectedRouter.HandleFunc("/projects/my", projectHandler.GetMyProjects).Methods("GET", "OPTIONS")
 	protectedRouter.HandleFunc("/projects/join", projectHandler.JoinProject).Methods("POST", "OPTIONS")
-	r.HandleFunc("/api/tasks/{taskId}/projects", projectHandler.GetTaskProjects).Methods("GET", "OPTIONS")
+	protectedRouter.HandleFunc("/api/tasks/{taskId}/projects", projectHandler.GetTaskProjects).Methods("GET", "OPTIONS")
 	protectedRouter.HandleFunc("/tasks/{taskId}/projects", projectHandler.CreateProject).Methods("POST", "OPTIONS")
 
-	// проблемы - специфичные роуты ПЕРЕД общими паттернами
-	protectedRouter.HandleFunc("/projects/{projectId}/problems/main", problemHandler.GetMainProblem).Methods("GET", "OPTIONS")
+	// проблемы
 	protectedRouter.HandleFunc("/projects/{projectId}/problems", problemHandler.GetProjectProblems).Methods("GET", "OPTIONS")
-	protectedRouter.HandleFunc("/projects/{projectId}/problems", problemHandler.CreateProblem).Methods("POST", "OPTIONS")
 	protectedRouter.HandleFunc("/problems/{parentId}/subproblems", problemHandler.CreateSubproblem).Methods("POST", "OPTIONS")
 	protectedRouter.HandleFunc("/problems/{parentId}/subproblems", problemHandler.GetSubproblems).Methods("GET", "OPTIONS")
+
 	protectedRouter.HandleFunc("/problems/{problemId}", problemHandler.GetProblem).Methods("GET", "OPTIONS")
 	protectedRouter.HandleFunc("/problems/{problemId}", problemHandler.UpdateProblem).Methods("PUT", "OPTIONS")
-	protectedRouter.HandleFunc("/problems/{problemId}", problemHandler.DeleteProblem).Methods("DELETE", "OPTIONS")
+
+	// результаты
+	protectedRouter.HandleFunc("/problems/{problemId}/result", resultHandler.GetResult).Methods("GET", "OPTIONS")
+	protectedRouter.HandleFunc("/problems/{problemId}/result", resultHandler.CreateResult).Methods("POST", "OPTIONS")
 
 	log.Printf("Server starting on port %s", cfg.Server.Port)
 	log.Fatal(http.ListenAndServe(":"+cfg.Server.Port, r))

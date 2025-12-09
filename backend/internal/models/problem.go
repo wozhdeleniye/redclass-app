@@ -17,6 +17,7 @@ type Problem struct {
 	Description string         `json:"description"`
 	StartTime   time.Time      `json:"start_time" gorm:"not null"` // >= родительского start_time
 	EndTime     time.Time      `json:"end_time" gorm:"not null"`   // <= родительского end_time
+	Solved      bool           `json:"solved" gorm:"not null;default:false"`
 	CreatedAt   time.Time      `json:"created_at"`
 	UpdatedAt   time.Time      `json:"updated_at"`
 	DeletedAt   gorm.DeletedAt `json:"-" gorm:"index"`

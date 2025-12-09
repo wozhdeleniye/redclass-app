@@ -47,6 +47,7 @@ func (s *ProblemService) CreateMainProblem(ctx context.Context, project *models.
 		Description: fmt.Sprintf("Main problem for project: %s", project.Title),
 		StartTime:   now,
 		EndTime:     endTime,
+		Solved:      false,
 	}
 
 	if err := s.problemRepo.Create(ctx, mainProblem); err != nil {
@@ -126,6 +127,7 @@ func (s *ProblemService) CreateProblem(
 		Description: req.Description,
 		StartTime:   startTime,
 		EndTime:     endTime,
+		Solved:      false,
 	}
 
 	if err := s.problemRepo.Create(ctx, problem); err != nil {

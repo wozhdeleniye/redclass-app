@@ -650,6 +650,50 @@
             }
           }
         }
+
+        ,
+        {
+          "name": "Get Result",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/problems/{{problemId}}/result",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "problems", "{{problemId}}", "result"]
+            }
+          }
+        },
+        {
+          "name": "Create Result",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"done\": true,\n  \"comment\": \"Completed implementation and tests\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/problems/{{problemId}}/result",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "problems", "{{problemId}}", "result"]
+            }
+          }
+        }
       ]
     }
   ],
