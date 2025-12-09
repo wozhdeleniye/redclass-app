@@ -72,56 +72,62 @@ func main() {
 	r := mux.NewRouter()
 	r.Use(CORSMiddleware)
 
+	// Глобальный обработчик для всех OPTIONS запросов
+	r.Methods("OPTIONS").HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusNoContent)
+	})
+
 	// auth
-	r.HandleFunc("/api/auth/register", authHandler.Register).Methods("POST")
-	r.HandleFunc("/api/auth/login", authHandler.Login).Methods("POST")
-	r.HandleFunc("/api/auth/refresh", authHandler.Refresh).Methods("POST")
+	r.HandleFunc("/api/auth/register", authHandler.Register).Methods("POST", "OPTIONS")
+	r.HandleFunc("/api/auth/login", authHandler.Login).Methods("POST", "OPTIONS")
+	r.HandleFunc("/api/auth/refresh", authHandler.Refresh).Methods("POST", "OPTIONS")
 
 	protected := r.PathPrefix("/api/auth").Subrouter()
 	protected.Use(authMiddleware.Authenticate)
-	protected.HandleFunc("/logout", authHandler.Logout).Methods("POST")
+	protected.HandleFunc("/logout", authHandler.Logout).Methods("POST", "OPTIONS")
 
 	// предмет паблик
-	r.HandleFunc("/api/subjects", subjectHandler.GetAllSubjects).Methods("GET")
-	r.HandleFunc("/api/subjects/{id}", subjectHandler.GetSubject).Methods("GET")
-	r.HandleFunc("/api/subjects/{id}/tasks", taskHandler.GetSubjectTasks).Methods("GET")
-	r.HandleFunc("/api/subjects/{id}/members", roleHandler.GetSubjectMembers).Methods("GET")
-	r.HandleFunc("/api/tasks/{taskId}", taskHandler.GetTask).Methods("GET")
+	r.HandleFunc("/api/subjects", subjectHandler.GetAllSubjects).Methods("GET", "OPTIONS")
+	r.HandleFunc("/api/subjects/{id}", subjectHandler.GetSubject).Methods("GET", "OPTIONS")
+	r.HandleFunc("/api/subjects/{id}/tasks", taskHandler.GetSubjectTasks).Methods("GET", "OPTIONS")
+	r.HandleFunc("/api/subjects/{id}/members", roleHandler.GetSubjectMembers).Methods("GET", "OPTIONS")
+	r.HandleFunc("/api/tasks/{taskId}", taskHandler.GetTask).Methods("GET", "OPTIONS")
 
 	// защищенные
 	protectedRouter := r.PathPrefix("/api").Subrouter()
 	protectedRouter.Use(authMiddleware.Authenticate)
 
-	// прдмет
-	protectedRouter.HandleFunc("/subjects", subjectHandler.CreateSubject).Methods("POST")
-	protectedRouter.HandleFunc("/subjects/{id}", subjectHandler.UpdateSubject).Methods("PUT")
-	protectedRouter.HandleFunc("/subjects/{id}", subjectHandler.DeleteSubject).Methods("DELETE")
-	protectedRouter.HandleFunc("/subjects/join", subjectHandler.JoinSubject).Methods("POST")
-	protectedRouter.HandleFunc("/subjects/get/my", subjectHandler.GetMySubjects).Methods("GET")
+	// предметы - специфичные роуты ПЕРЕД общими паттернами
+	protectedRouter.HandleFunc("/subjects/get/my", subjectHandler.GetMySubjects).Methods("GET", "OPTIONS")
+	protectedRouter.HandleFunc("/subjects/join", subjectHandler.JoinSubject).Methods("POST", "OPTIONS")
+	protectedRouter.HandleFunc("/subjects", subjectHandler.CreateSubject).Methods("POST", "OPTIONS")
+	protectedRouter.HandleFunc("/subjects/{id}", subjectHandler.UpdateSubject).Methods("PUT", "OPTIONS")
+	protectedRouter.HandleFunc("/subjects/{id}", subjectHandler.DeleteSubject).Methods("DELETE", "OPTIONS")
 
-	// роль
-	protectedRouter.HandleFunc("/subjects/{id}/roles/{roleId}/change", roleHandler.ChangeRole).Methods("POST")
-	protectedRouter.HandleFunc("/subjects/{id}/roles/{roleId}", roleHandler.RemoveFromSubject).Methods("DELETE")
+	// роли
+	protectedRouter.HandleFunc("/subjects/{id}/roles/{roleId}/change", roleHandler.ChangeRole).Methods("POST", "OPTIONS")
+	protectedRouter.HandleFunc("/subjects/{id}/roles/{roleId}", roleHandler.RemoveFromSubject).Methods("DELETE", "OPTIONS")
 
 	// задания
-	protectedRouter.HandleFunc("/subjects/{id}/tasks", taskHandler.CreateTask).Methods("POST")
-	protectedRouter.HandleFunc("/tasks/{taskId}", taskHandler.UpdateTask).Methods("PUT")
-	protectedRouter.HandleFunc("/tasks/{taskId}", taskHandler.DeleteTask).Methods("DELETE")
+	protectedRouter.HandleFunc("/subjects/{id}/tasks", taskHandler.CreateTask).Methods("POST", "OPTIONS")
+	protectedRouter.HandleFunc("/tasks/{taskId}", taskHandler.UpdateTask).Methods("PUT", "OPTIONS")
+	protectedRouter.HandleFunc("/tasks/{taskId}", taskHandler.DeleteTask).Methods("DELETE", "OPTIONS")
 
-	// проекты
-	r.HandleFunc("/api/tasks/{taskId}/projects", projectHandler.GetTaskProjects).Methods("GET")
-	protectedRouter.HandleFunc("/tasks/{taskId}/projects", projectHandler.CreateProject).Methods("POST")
-	protectedRouter.HandleFunc("/projects/join", projectHandler.JoinProject).Methods("POST")
-	protectedRouter.HandleFunc("/projects/my", projectHandler.GetMyProjects).Methods("GET")
+	// проекты - специфичные роуты ПЕРЕД общими паттернами
+	protectedRouter.HandleFunc("/projects/my", projectHandler.GetMyProjects).Methods("GET", "OPTIONS")
+	protectedRouter.HandleFunc("/projects/join", projectHandler.JoinProject).Methods("POST", "OPTIONS")
+	r.HandleFunc("/api/tasks/{taskId}/projects", projectHandler.GetTaskProjects).Methods("GET", "OPTIONS")
+	protectedRouter.HandleFunc("/tasks/{taskId}/projects", projectHandler.CreateProject).Methods("POST", "OPTIONS")
 
-	// проблемы
-	protectedRouter.HandleFunc("/projects/{projectId}/problems", problemHandler.GetProjectProblems).Methods("GET")
-	protectedRouter.HandleFunc("/projects/{projectId}/problems/main", problemHandler.GetMainProblem).Methods("GET")
-	protectedRouter.HandleFunc("/projects/{projectId}/problems", problemHandler.CreateProblem).Methods("POST")
-	protectedRouter.HandleFunc("/problems/{problemId}", problemHandler.GetProblem).Methods("GET")
-	protectedRouter.HandleFunc("/problems/{problemId}", problemHandler.UpdateProblem).Methods("PUT")
-	protectedRouter.HandleFunc("/problems/{problemId}", problemHandler.DeleteProblem).Methods("DELETE")
-	protectedRouter.HandleFunc("/problems/{parentId}/subproblems", problemHandler.CreateSubproblem).Methods("POST")
+	// проблемы - специфичные роуты ПЕРЕД общими паттернами
+	protectedRouter.HandleFunc("/projects/{projectId}/problems/main", problemHandler.GetMainProblem).Methods("GET", "OPTIONS")
+	protectedRouter.HandleFunc("/projects/{projectId}/problems", problemHandler.GetProjectProblems).Methods("GET", "OPTIONS")
+	protectedRouter.HandleFunc("/projects/{projectId}/problems", problemHandler.CreateProblem).Methods("POST", "OPTIONS")
+	protectedRouter.HandleFunc("/problems/{parentId}/subproblems", problemHandler.CreateSubproblem).Methods("POST", "OPTIONS")
+	protectedRouter.HandleFunc("/problems/{parentId}/subproblems", problemHandler.GetSubproblems).Methods("GET", "OPTIONS")
+	protectedRouter.HandleFunc("/problems/{problemId}", problemHandler.GetProblem).Methods("GET", "OPTIONS")
+	protectedRouter.HandleFunc("/problems/{problemId}", problemHandler.UpdateProblem).Methods("PUT", "OPTIONS")
+	protectedRouter.HandleFunc("/problems/{problemId}", problemHandler.DeleteProblem).Methods("DELETE", "OPTIONS")
 
 	log.Printf("Server starting on port %s", cfg.Server.Port)
 	log.Fatal(http.ListenAndServe(":"+cfg.Server.Port, r))
@@ -129,16 +135,20 @@ func main() {
 
 func CORSMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// Установка CORS-заголовков
 		w.Header().Set("Access-Control-Allow-Origin", "*")
 		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
-		w.Header().Set("Content-Type", "application/json")
 		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS, PATCH")
-		// Обработка предзапросов
+		w.Header().Set("Access-Control-Allow-Credentials", "true")
+
 		if r.Method == http.MethodOptions {
 			w.WriteHeader(http.StatusNoContent)
 			return
 		}
+
+		if r.Method != http.MethodOptions {
+			w.Header().Set("Content-Type", "application/json")
+		}
+
 		next.ServeHTTP(w, r)
 	})
 }

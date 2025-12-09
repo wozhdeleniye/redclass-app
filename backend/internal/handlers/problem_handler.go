@@ -234,3 +234,29 @@ func (h *ProblemHandler) GetMainProblem(w http.ResponseWriter, r *http.Request) 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(problem)
 }
+
+// GetSubproblems получает все дочерние проблемы (GET /api/problems/{parentId}/subproblems)
+func (h *ProblemHandler) GetSubproblems(w http.ResponseWriter, r *http.Request) {
+	userID, ok := r.Context().Value("user_id").(uuid.UUID)
+	if !ok {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	vars := mux.Vars(r)
+	parentIDStr := vars["parentId"]
+	parentID, err := uuid.Parse(parentIDStr)
+	if err != nil {
+		http.Error(w, "Invalid parent ID", http.StatusBadRequest)
+		return
+	}
+
+	problems, err := h.problemService.GetSubproblems(r.Context(), userID, parentID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(problems)
+}

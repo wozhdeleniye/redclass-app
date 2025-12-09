@@ -335,3 +335,26 @@ func (s *ProblemService) GetMainProblem(ctx context.Context, userID uuid.UUID, p
 func (s *ProblemService) GetProblemByIDDirect(ctx context.Context, problemID uuid.UUID) (*models.Problem, error) {
 	return s.problemRepo.GetByID(ctx, problemID)
 }
+
+// GetSubproblems получает все дочерние проблемы для родительской проблемы
+func (s *ProblemService) GetSubproblems(ctx context.Context, userID uuid.UUID, parentID uuid.UUID) ([]*models.Problem, error) {
+	// Получаем родительскую проблему
+	parent, err := s.problemRepo.GetByID(ctx, parentID)
+	if err != nil {
+		return nil, err
+	}
+	if parent == nil {
+		return nil, errors.New("parent problem not found")
+	}
+
+	// Проверяем, что пользователь член проекта
+	isMember, err := s.projectRepo.IsUserMember(ctx, parent.ProjectID, userID)
+	if err != nil {
+		return nil, err
+	}
+	if !isMember {
+		return nil, errors.New("user is not a project member")
+	}
+
+	return s.problemRepo.GetChildProblems(ctx, parentID)
+}

@@ -632,6 +632,23 @@
               "path": ["api", "problems", "{{problemId}}"]
             }
           }
+        },
+        {
+          "name": "Get Subproblems",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/problems/{{parentId}}/subproblems",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "problems", "{{parentId}}", "subproblems"]
+            }
+          }
         }
       ]
     }
@@ -674,6 +691,11 @@
     },
     {
       "key": "problemId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "parentId",
       "value": "",
       "type": "string"
     }
