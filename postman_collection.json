@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "RedClass App API",
-    "description": "API для управления предметами, ролями и заданиями",
+    "description": "API для управления предметами, ролями, заданиями, проектами и проблемами",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
@@ -27,7 +27,21 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "auth", "register"]
             }
-          }
+          },
+          "response": [
+            {
+              "name": "Register Success",
+              "status": "Created",
+              "code": 201,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"id\": \"550e8400-e29b-41d4-a716-446655440000\",\n  \"email\": \"user@example.com\",\n  \"nickname\": \"John Doe\",\n  \"created_at\": \"2025-12-09T10:30:00Z\"\n}"
+            }
+          ]
         },
         {
           "name": "Login",
@@ -48,7 +62,21 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "auth", "login"]
             }
-          }
+          },
+          "response": [
+            {
+              "name": "Login Success",
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"access_token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...\",\n  \"refresh_token\": \"refresh_token_string\",\n  \"expires_in\": 3600\n}"
+            }
+          ]
         },
         {
           "name": "Refresh Token",
@@ -113,7 +141,21 @@
                 }
               ]
             }
-          }
+          },
+          "response": [
+            {
+              "name": "Get All Subjects Success",
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "[\n  {\n    \"id\": \"550e8400-e29b-41d4-a716-446655440000\",\n    \"name\": \"Математика\",\n    \"description\": \"Курс высшей математики\",\n    \"code\": \"MATH101\",\n    \"created_at\": \"2025-12-01T08:00:00Z\",\n    \"updated_at\": \"2025-12-09T10:30:00Z\",\n    \"roles\": [],\n    \"tasks\": []\n  }\n]"
+            }
+          ]
         },
         {
           "name": "Get Subject by ID",
@@ -125,7 +167,21 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "subjects", "{{subjectId}}"]
             }
-          }
+          },
+          "response": [
+            {
+              "name": "Get Subject Success",
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"id\": \"550e8400-e29b-41d4-a716-446655440000\",\n  \"name\": \"Математика\",\n  \"description\": \"Курс высшей математики\",\n  \"code\": \"MATH101\",\n  \"created_at\": \"2025-12-01T08:00:00Z\",\n  \"updated_at\": \"2025-12-09T10:30:00Z\",\n  \"roles\": [\n    {\n      \"id\": \"660e8400-e29b-41d4-a716-446655440001\",\n      \"user_id\": \"550e8400-e29b-41d4-a716-446655440000\",\n      \"subject_id\": \"550e8400-e29b-41d4-a716-446655440000\",\n      \"role_type\": \"teacher\",\n      \"created_at\": \"2025-12-01T08:00:00Z\",\n      \"updated_at\": \"2025-12-09T10:30:00Z\"\n    }\n  ],\n  \"tasks\": []\n}"
+            }
+          ]
         },
         {
           "name": "Create Subject",
@@ -150,7 +206,21 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "subjects"]
             }
-          }
+          },
+          "response": [
+            {
+              "name": "Create Subject Success",
+              "status": "Created",
+              "code": 201,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"id\": \"550e8400-e29b-41d4-a716-446655440000\",\n  \"name\": \"Математика\",\n  \"description\": \"Курс высшей математики\",\n  \"code\": \"MATH101\",\n  \"created_at\": \"2025-12-09T10:30:00Z\",\n  \"updated_at\": \"2025-12-09T10:30:00Z\",\n  \"roles\": null,\n  \"tasks\": null\n}"
+            }
+          ]
         },
         {
           "name": "Update Subject",
@@ -175,7 +245,21 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "subjects", "{{subjectId}}"]
             }
-          }
+          },
+          "response": [
+            {
+              "name": "Update Subject Success",
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"id\": \"550e8400-e29b-41d4-a716-446655440000\",\n  \"name\": \"Продвинутая Математика\",\n  \"description\": \"Курс продвинутой высшей математики\",\n  \"code\": \"MATH101\",\n  \"created_at\": \"2025-12-01T08:00:00Z\",\n  \"updated_at\": \"2025-12-09T10:40:00Z\",\n  \"roles\": null,\n  \"tasks\": null\n}"
+            }
+          ]
         },
         {
           "name": "Delete Subject",
@@ -192,7 +276,15 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "subjects", "{{subjectId}}"]
             }
-          }
+          },
+          "response": [
+            {
+              "name": "Delete Subject Success",
+              "status": "No Content",
+              "code": 204,
+              "header": []
+            }
+          ]
         },
         {
           "name": "Join Subject by Code",
@@ -217,7 +309,21 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "subjects", "join"]
             }
-          }
+          },
+          "response": [
+            {
+              "name": "Join Subject Success",
+              "status": "Created",
+              "code": 201,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"id\": \"660e8400-e29b-41d4-a716-446655440001\",\n  \"user_id\": \"550e8400-e29b-41d4-a716-446655440000\",\n  \"subject_id\": \"550e8400-e29b-41d4-a716-446655440000\",\n  \"role_type\": \"student\",\n  \"created_at\": \"2025-12-09T10:30:00Z\",\n  \"updated_at\": \"2025-12-09T10:30:00Z\"\n}"
+            }
+          ]
         },
         {
           "name": "Get My Subjects",
@@ -230,11 +336,25 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/subjects/my",
+              "raw": "{{baseUrl}}/api/subjects/get/my",
               "host": ["{{baseUrl}}"],
-              "path": ["api", "subjects", "my"]
+              "path": ["api", "subjects", "get", "my"]
             }
-          }
+          },
+          "response": [
+            {
+              "name": "Get My Subjects Success",
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "[\n  {\n    \"id\": \"550e8400-e29b-41d4-a716-446655440000\",\n    \"name\": \"Математика\",\n    \"description\": \"Курс высшей математики\",\n    \"code\": \"MATH101\",\n    \"created_at\": \"2025-12-01T08:00:00Z\",\n    \"updated_at\": \"2025-12-09T10:30:00Z\",\n    \"roles\": null,\n    \"tasks\": null\n  }\n]"
+            }
+          ]
         },
         {
           "name": "Get Subject Members",
@@ -246,7 +366,21 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "subjects", "{{subjectId}}", "members"]
             }
-          }
+          },
+          "response": [
+            {
+              "name": "Get Subject Members Success",
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "[\n  {\n    \"id\": \"660e8400-e29b-41d4-a716-446655440001\",\n    \"user_id\": \"550e8400-e29b-41d4-a716-446655440000\",\n    \"subject_id\": \"550e8400-e29b-41d4-a716-446655440000\",\n    \"role_type\": \"teacher\",\n    \"created_at\": \"2025-12-01T08:00:00Z\",\n    \"updated_at\": \"2025-12-09T10:30:00Z\",\n    \"user\": {\n      \"id\": \"550e8400-e29b-41d4-a716-446655440000\",\n      \"email\": \"teacher@example.com\",\n      \"nickname\": \"John Teacher\",\n      \"created_at\": \"2025-11-01T08:00:00Z\"\n    }\n  }\n]"
+            }
+          ]
         }
       ]
     },
@@ -276,7 +410,21 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "subjects", "{{subjectId}}", "roles", "{{roleId}}", "change"]
             }
-          }
+          },
+          "response": [
+            {
+              "name": "Change Role Success",
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"id\": \"660e8400-e29b-41d4-a716-446655440001\",\n  \"user_id\": \"550e8400-e29b-41d4-a716-446655440000\",\n  \"subject_id\": \"550e8400-e29b-41d4-a716-446655440000\",\n  \"role_type\": \"teacher\",\n  \"created_at\": \"2025-12-01T08:00:00Z\",\n  \"updated_at\": \"2025-12-09T10:40:00Z\"\n}"
+            }
+          ]
         },
         {
           "name": "Remove User From Subject",
@@ -293,7 +441,15 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "subjects", "{{subjectId}}", "roles", "{{roleId}}"]
             }
-          }
+          },
+          "response": [
+            {
+              "name": "Remove User Success",
+              "status": "No Content",
+              "code": 204,
+              "header": []
+            }
+          ]
         }
       ]
     },
@@ -320,7 +476,21 @@
                 }
               ]
             }
-          }
+          },
+          "response": [
+            {
+              "name": "Get Subject Tasks Success",
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "[\n  {\n    \"id\": \"770e8400-e29b-41d4-a716-446655440002\",\n    \"subject_id\": \"550e8400-e29b-41d4-a716-446655440000\",\n    \"created_by_id\": \"550e8400-e29b-41d4-a716-446655440000\",\n    \"title\": \"Решить задачи 1-10\",\n    \"description\": \"Решить задачи из учебника на странице 45\",\n    \"due_date\": \"2025-12-31T23:59:59Z\",\n    \"created_at\": \"2025-12-09T08:00:00Z\",\n    \"updated_at\": \"2025-12-09T10:30:00Z\"\n  }\n]"
+            }
+          ]
         },
         {
           "name": "Get Task by ID",
@@ -332,7 +502,21 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "tasks", "{{taskId}}"]
             }
-          }
+          },
+          "response": [
+            {
+              "name": "Get Task Success",
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"id\": \"770e8400-e29b-41d4-a716-446655440002\",\n  \"subject_id\": \"550e8400-e29b-41d4-a716-446655440000\",\n  \"created_by_id\": \"550e8400-e29b-41d4-a716-446655440000\",\n  \"title\": \"Решить задачи 1-10\",\n  \"description\": \"Решить задачи из учебника на странице 45\",\n  \"due_date\": \"2025-12-31T23:59:59Z\",\n  \"created_at\": \"2025-12-09T08:00:00Z\",\n  \"updated_at\": \"2025-12-09T10:30:00Z\",\n  \"subject\": null,\n  \"created_by\": null\n}"
+            }
+          ]
         },
         {
           "name": "Create Task",
@@ -357,7 +541,21 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "subjects", "{{subjectId}}", "tasks"]
             }
-          }
+          },
+          "response": [
+            {
+              "name": "Create Task Success",
+              "status": "Created",
+              "code": 201,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"id\": \"770e8400-e29b-41d4-a716-446655440002\",\n  \"subject_id\": \"550e8400-e29b-41d4-a716-446655440000\",\n  \"created_by_id\": \"550e8400-e29b-41d4-a716-446655440000\",\n  \"title\": \"Решить задачи 1-10\",\n  \"description\": \"Решить задачи из учебника на странице 45\",\n  \"due_date\": \"2025-12-31T23:59:59Z\",\n  \"created_at\": \"2025-12-09T10:30:00Z\",\n  \"updated_at\": \"2025-12-09T10:30:00Z\",\n  \"subject\": null,\n  \"created_by\": null\n}"
+            }
+          ]
         },
         {
           "name": "Update Task",
@@ -382,24 +580,21 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "tasks", "{{taskId}}"]
             }
-          }
-        },
-        {
-          "name": "Delete Task",
-          "request": {
-            "method": "DELETE",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{accessToken}}"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/tasks/{{taskId}}",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "tasks", "{{taskId}}"]
+          },
+          "response": [
+            {
+              "name": "Update Task Success",
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"id\": \"770e8400-e29b-41d4-a716-446655440002\",\n  \"subject_id\": \"550e8400-e29b-41d4-a716-446655440000\",\n  \"created_by_id\": \"550e8400-e29b-41d4-a716-446655440000\",\n  \"title\": \"Решить задачи 1-15\",\n  \"description\": \"Решить задачи из учебника на странице 45-46\",\n  \"due_date\": \"2026-01-05T23:59:59Z\",\n  \"created_at\": \"2025-12-09T08:00:00Z\",\n  \"updated_at\": \"2025-12-09T10:45:00Z\",\n  \"subject\": null,\n  \"created_by\": null\n}"
             }
-          }
+          ]
         }
       ]
     },
@@ -416,7 +611,21 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "tasks", "{{taskId}}", "projects"]
             }
-          }
+          },
+          "response": [
+            {
+              "name": "Get Task Projects Success",
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "[\n  {\n    \"id\": \"880e8400-e29b-41d4-a716-446655440003\",\n    \"task_id\": \"770e8400-e29b-41d4-a716-446655440002\",\n    \"creator_id\": \"550e8400-e29b-41d4-a716-446655440000\",\n    \"title\": \"Проект: Веб-приложение\",\n    \"description\": \"Разработка веб-приложения для управления задачами\",\n    \"code\": \"a1b2c3d4\",\n    \"created_at\": \"2025-12-09T10:00:00Z\",\n    \"updated_at\": \"2025-12-09T10:30:00Z\",\n    \"task\": null,\n    \"creator\": null,\n    \"members\": []\n  }\n]"
+            }
+          ]
         },
         {
           "name": "Create Project",
@@ -441,7 +650,21 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "tasks", "{{taskId}}", "projects"]
             }
-          }
+          },
+          "response": [
+            {
+              "name": "Create Project Success",
+              "status": "Created",
+              "code": 201,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"id\": \"880e8400-e29b-41d4-a716-446655440003\",\n  \"task_id\": \"770e8400-e29b-41d4-a716-446655440002\",\n  \"creator_id\": \"550e8400-e29b-41d4-a716-446655440000\",\n  \"title\": \"Проект: Веб-приложение\",\n  \"description\": \"Разработка веб-приложения для управления задачами\",\n  \"code\": \"a1b2c3d4\",\n  \"created_at\": \"2025-12-09T10:30:00Z\",\n  \"updated_at\": \"2025-12-09T10:30:00Z\",\n  \"task\": null,\n  \"creator\": null,\n  \"members\": null\n}"
+            }
+          ]
         },
         {
           "name": "Join Project by Code",
@@ -466,7 +689,21 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "projects", "join"]
             }
-          }
+          },
+          "response": [
+            {
+              "name": "Join Project Success",
+              "status": "Created",
+              "code": 201,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"id\": \"990e8400-e29b-41d4-a716-446655440004\",\n  \"project_id\": \"880e8400-e29b-41d4-a716-446655440003\",\n  \"user_id\": \"550e8400-e29b-41d4-a716-446655440000\",\n  \"role\": \"member\",\n  \"created_at\": \"2025-12-09T10:30:00Z\",\n  \"updated_at\": \"2025-12-09T10:30:00Z\"\n}"
+            }
+          ]
         },
         {
           "name": "Get My Projects",
@@ -483,7 +720,21 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "projects", "my"]
             }
-          }
+          },
+          "response": [
+            {
+              "name": "Get My Projects Success",
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "[\n  {\n    \"id\": \"880e8400-e29b-41d4-a716-446655440003\",\n    \"task_id\": \"770e8400-e29b-41d4-a716-446655440002\",\n    \"creator_id\": \"550e8400-e29b-41d4-a716-446655440000\",\n    \"title\": \"Проект: Веб-приложение\",\n    \"description\": \"Разработка веб-приложения для управления задачами\",\n    \"code\": \"a1b2c3d4\",\n    \"created_at\": \"2025-12-09T10:00:00Z\",\n    \"updated_at\": \"2025-12-09T10:30:00Z\",\n    \"task\": null,\n    \"creator\": null,\n    \"members\": []\n  }\n]"
+            }
+          ]
         }
       ]
     },
@@ -505,24 +756,21 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "projects", "{{projectId}}", "problems"]
             }
-          }
-        },
-        {
-          "name": "Get Main Problem",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{accessToken}}"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/projects/{{projectId}}/problems/main",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "projects", "{{projectId}}", "problems", "main"]
+          },
+          "response": [
+            {
+              "name": "Get Project Problems Success",
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "[\n  {\n    \"id\": \"aa0e8400-e29b-41d4-a716-446655440005\",\n    \"project_id\": \"880e8400-e29b-41d4-a716-446655440003\",\n    \"creator_id\": \"550e8400-e29b-41d4-a716-446655440000\",\n    \"parent_id\": null,\n    \"number\": 1,\n    \"title\": \"Main: Проект: Веб-приложение\",\n    \"description\": \"Main problem for project: Проект: Веб-приложение\",\n    \"start_time\": \"2025-12-09T10:00:00Z\",\n    \"end_time\": \"2025-12-31T23:59:59Z\",\n    \"solved\": false,\n    \"created_at\": \"2025-12-09T10:00:00Z\",\n    \"updated_at\": \"2025-12-09T10:30:00Z\"\n  }\n]"
             }
-          }
+          ]
         },
         {
           "name": "Get Problem by ID",
@@ -539,32 +787,21 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "problems", "{{problemId}}"]
             }
-          }
-        },
-        {
-          "name": "Create Problem",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              },
-              {
-                "key": "Authorization",
-                "value": "Bearer {{accessToken}}"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"title\": \"Проблема: Добавить аутентификацию\",\n  \"description\": \"Реализовать OAuth2 аутентификацию\",\n  \"start_time\": \"2025-12-09T10:00:00Z\",\n  \"end_time\": \"2025-12-20T18:00:00Z\",\n  \"assignee_ids\": []\n}"
-            },
-            "url": {
-              "raw": "{{baseUrl}}/api/projects/{{projectId}}/problems",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "projects", "{{projectId}}", "problems"]
+          },
+          "response": [
+            {
+              "name": "Get Problem Success",
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"problem\": {\n    \"id\": \"aa0e8400-e29b-41d4-a716-446655440005\",\n    \"project_id\": \"880e8400-e29b-41d4-a716-446655440003\",\n    \"creator_id\": \"550e8400-e29b-41d4-a716-446655440000\",\n    \"parent_id\": null,\n    \"number\": 1,\n    \"title\": \"Main: Проект: Веб-приложение\",\n    \"description\": \"Main problem for project: Проект: Веб-приложение\",\n    \"start_time\": \"2025-12-09T10:00:00Z\",\n    \"end_time\": \"2025-12-31T23:59:59Z\",\n    \"solved\": false,\n    \"created_at\": \"2025-12-09T10:00:00Z\",\n    \"updated_at\": \"2025-12-09T10:30:00Z\"\n  },\n  \"result\": null\n}"
             }
-          }
+          ]
         },
         {
           "name": "Create Subproblem",
@@ -589,7 +826,21 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "problems", "{{problemId}}", "subproblems"]
             }
-          }
+          },
+          "response": [
+            {
+              "name": "Create Subproblem Success",
+              "status": "Created",
+              "code": 201,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"id\": \"cc0e8400-e29b-41d4-a716-446655440007\",\n  \"project_id\": \"880e8400-e29b-41d4-a716-446655440003\",\n  \"creator_id\": \"550e8400-e29b-41d4-a716-446655440000\",\n  \"parent_id\": \"bb0e8400-e29b-41d4-a716-446655440006\",\n  \"number\": 3,\n  \"title\": \"Подпроблема: Настроить Google OAuth\",\n  \"description\": \"Получить API ключи и настроить интеграцию\",\n  \"start_time\": \"2025-12-09T10:00:00Z\",\n  \"end_time\": \"2025-12-15T18:00:00Z\",\n  \"solved\": false,\n  \"created_at\": \"2025-12-09T10:35:00Z\",\n  \"updated_at\": \"2025-12-09T10:35:00Z\"\n}"
+            }
+          ]
         },
         {
           "name": "Update Problem",
@@ -614,24 +865,21 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "problems", "{{problemId}}"]
             }
-          }
-        },
-        {
-          "name": "Delete Problem",
-          "request": {
-            "method": "DELETE",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{accessToken}}"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/problems/{{problemId}}",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "problems", "{{problemId}}"]
+          },
+          "response": [
+            {
+              "name": "Update Problem Success",
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"id\": \"bb0e8400-e29b-41d4-a716-446655440006\",\n  \"project_id\": \"880e8400-e29b-41d4-a716-446655440003\",\n  \"creator_id\": \"550e8400-e29b-41d4-a716-446655440000\",\n  \"parent_id\": null,\n  \"number\": 2,\n  \"title\": \"Проблема: Добавить OAuth2\",\n  \"description\": \"Реализовать OAuth2 аутентификацию (обновлено)\",\n  \"start_time\": \"2025-12-09T10:00:00Z\",\n  \"end_time\": \"2025-12-22T18:00:00Z\",\n  \"solved\": false,\n  \"created_at\": \"2025-12-09T10:30:00Z\",\n  \"updated_at\": \"2025-12-09T10:45:00Z\"\n}"
             }
-          }
+          ]
         },
         {
           "name": "Get Subproblems",
@@ -648,10 +896,22 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "problems", "{{parentId}}", "subproblems"]
             }
-          }
-        }
-
-        ,
+          },
+          "response": [
+            {
+              "name": "Get Subproblems Success",
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "[\n  {\n    \"id\": \"cc0e8400-e29b-41d4-a716-446655440007\",\n    \"project_id\": \"880e8400-e29b-41d4-a716-446655440003\",\n    \"creator_id\": \"550e8400-e29b-41d4-a716-446655440000\",\n    \"parent_id\": \"bb0e8400-e29b-41d4-a716-446655440006\",\n    \"number\": 3,\n    \"title\": \"Подпроблема: Настроить Google OAuth\",\n    \"description\": \"Получить API ключи и настроить интеграцию\",\n    \"start_time\": \"2025-12-09T10:00:00Z\",\n    \"end_time\": \"2025-12-15T18:00:00Z\",\n    \"solved\": false,\n    \"created_at\": \"2025-12-09T10:35:00Z\",\n    \"updated_at\": \"2025-12-09T10:35:00Z\"\n  }\n]"
+            }
+          ]
+        },
         {
           "name": "Get Result",
           "request": {
@@ -667,7 +927,21 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "problems", "{{problemId}}", "result"]
             }
-          }
+          },
+          "response": [
+            {
+              "name": "Get Result Success",
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"id\": \"dd0e8400-e29b-41d4-a716-446655440008\",\n  \"problem_id\": \"aa0e8400-e29b-41d4-a716-446655440005\",\n  \"creator_id\": \"550e8400-e29b-41d4-a716-446655440000\",\n  \"done\": true,\n  \"comment\": \"Completed implementation and tests\",\n  \"created_at\": \"2025-12-09T10:50:00Z\"\n}"
+            }
+          ]
         },
         {
           "name": "Create Result",
@@ -692,7 +966,21 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "problems", "{{problemId}}", "result"]
             }
-          }
+          },
+          "response": [
+            {
+              "name": "Create Result Success",
+              "status": "Created",
+              "code": 201,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"id\": \"dd0e8400-e29b-41d4-a716-446655440008\",\n  \"problem_id\": \"aa0e8400-e29b-41d4-a716-446655440005\",\n  \"creator_id\": \"550e8400-e29b-41d4-a716-446655440000\",\n  \"done\": true,\n  \"comment\": \"Completed implementation and tests\",\n  \"created_at\": \"2025-12-09T10:50:00Z\"\n}"
+            }
+          ]
         }
       ]
     }
