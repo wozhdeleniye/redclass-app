@@ -116,3 +116,23 @@ func (h *ProjectHandler) GetMyProjects(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(projects)
 }
+
+// GetProjectUsers возвращает всех пользователей проекта (GET /api/projects/{projectId}/users)
+func (h *ProjectHandler) GetProjectUsers(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	projectIDStr := vars["projectId"]
+	projectID, err := uuid.Parse(projectIDStr)
+	if err != nil {
+		http.Error(w, "Invalid project ID", http.StatusBadRequest)
+		return
+	}
+
+	users, err := h.projectService.GetProjectUsers(r.Context(), projectID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(users)
+}

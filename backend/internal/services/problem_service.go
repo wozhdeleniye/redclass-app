@@ -306,7 +306,7 @@ func (s *ProblemService) GetProblem(ctx context.Context, userID uuid.UUID, probl
 }
 
 // GetProjectProblems получает все проблемы проекта
-func (s *ProblemService) GetProjectProblems(ctx context.Context, userID uuid.UUID, projectID uuid.UUID) ([]*models.Problem, error) {
+func (s *ProblemService) GetProjectProblems(ctx context.Context, userID uuid.UUID, projectID uuid.UUID, assignedOnly bool) ([]*models.Problem, error) {
 	// Проверяем, что пользователь член проекта
 	isMember, err := s.projectRepo.IsUserMember(ctx, projectID, userID)
 	if err != nil {
@@ -314,6 +314,10 @@ func (s *ProblemService) GetProjectProblems(ctx context.Context, userID uuid.UUI
 	}
 	if !isMember {
 		return nil, errors.New("user is not a project member")
+	}
+
+	if assignedOnly {
+		return s.problemRepo.GetProjectProblemsAssigned(ctx, projectID, userID)
 	}
 
 	return s.problemRepo.GetProjectProblems(ctx, projectID)

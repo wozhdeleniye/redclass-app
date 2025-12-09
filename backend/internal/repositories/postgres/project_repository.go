@@ -96,3 +96,13 @@ func (r *ProjectRepository) IsUserMember(ctx context.Context, projectID, userID 
 		Count(&count).Error
 	return count > 0, err
 }
+
+// GetMembersByProject получает участников проекта с предзагрузкой пользователей
+func (r *ProjectRepository) GetMembersByProject(ctx context.Context, projectID uuid.UUID) ([]*models.ProjectMember, error) {
+	var members []*models.ProjectMember
+	err := r.db.WithContext(ctx).
+		Preload("User").
+		Where("project_id = ? AND deleted_at IS NULL", projectID).
+		Find(&members).Error
+	return members, err
+}

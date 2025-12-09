@@ -118,6 +118,7 @@ func main() {
 	// проекты
 	protectedRouter.HandleFunc("/projects/my", projectHandler.GetMyProjects).Methods("GET", "OPTIONS")
 	protectedRouter.HandleFunc("/projects/join", projectHandler.JoinProject).Methods("POST", "OPTIONS")
+	protectedRouter.HandleFunc("/projects/{projectId}/users", projectHandler.GetProjectUsers).Methods("GET", "OPTIONS")
 	protectedRouter.HandleFunc("/api/tasks/{taskId}/projects", projectHandler.GetTaskProjects).Methods("GET", "OPTIONS")
 	protectedRouter.HandleFunc("/tasks/{taskId}/projects", projectHandler.CreateProject).Methods("POST", "OPTIONS")
 

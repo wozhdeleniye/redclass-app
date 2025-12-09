@@ -137,13 +137,13 @@ func (s *ProjectService) JoinProject(ctx context.Context, userID uuid.UUID, code
 		return nil, errors.New("user is already a member of this project")
 	}
 
-	existingProject, err := s.projectRepo.GetUserProjectByTask(ctx, userID, project.TaskID)
-	if err != nil {
-		return nil, err
-	}
-	if existingProject != nil {
-		return nil, errors.New("user can only be in one project per task")
-	}
+	//existingProject, err := s.projectRepo.GetUserProjectByTask(ctx, userID, project.TaskID)
+	//if err != nil {
+	//	return nil, err
+	//}
+	//if existingProject != nil {
+	//	return nil, errors.New("user can only be in one project per task")
+	//}
 
 	member := &models.ProjectMember{
 		ID:        uuid.New(),
@@ -166,4 +166,19 @@ func (s *ProjectService) GetTaskProjects(ctx context.Context, taskID uuid.UUID) 
 
 func (s *ProjectService) GetUserProjects(ctx context.Context, userID uuid.UUID) ([]*models.Project, error) {
 	return s.projectRepo.GetUserProjects(ctx, userID)
+}
+
+// GetProjectUsers возвращает список пользователей, которые являются участниками проекта
+func (s *ProjectService) GetProjectUsers(ctx context.Context, projectID uuid.UUID) ([]*models.User, error) {
+	members, err := s.projectRepo.GetMembersByProject(ctx, projectID)
+	if err != nil {
+		return nil, err
+	}
+	users := make([]*models.User, 0, len(members))
+	for _, m := range members {
+		if m.User != nil {
+			users = append(users, m.User)
+		}
+	}
+	return users, nil
 }

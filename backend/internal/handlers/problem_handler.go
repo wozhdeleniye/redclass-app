@@ -218,7 +218,14 @@ func (h *ProblemHandler) GetProjectProblems(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	problems, err := h.problemService.GetProjectProblems(r.Context(), userID, projectID)
+	// Параметр query `assigned_only` — если true, вернуть только проблемы, назначенные на текущего пользователя
+	q := r.URL.Query()
+	assignedOnly := false
+	if v := q.Get("assigned_only"); v == "1" || v == "true" || v == "True" {
+		assignedOnly = true
+	}
+
+	problems, err := h.problemService.GetProjectProblems(r.Context(), userID, projectID, assignedOnly)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return

@@ -65,6 +65,19 @@ func (r *ProblemRepository) GetProjectProblems(ctx context.Context, projectID uu
 	return problems, err
 }
 
+// GetProjectProblemsAssigned получает проблемы проекта, назначенные на конкретного пользователя
+func (r *ProblemRepository) GetProjectProblemsAssigned(ctx context.Context, projectID uuid.UUID, userID uuid.UUID) ([]*models.Problem, error) {
+	var problems []*models.Problem
+	err := r.db.WithContext(ctx).
+		Preload("Creator").
+		Preload("Assignees.User").
+		Joins("JOIN problem_assignees ON problem_assignees.problem_id = problems.id").
+		Where("problems.project_id = ? AND problem_assignees.user_id = ?", projectID, userID).
+		Order("number ASC").
+		Find(&problems).Error
+	return problems, err
+}
+
 // GetChildProblems получает все подпроблемы для родительской проблемы
 func (r *ProblemRepository) GetChildProblems(ctx context.Context, parentID uuid.UUID) ([]*models.Problem, error) {
 	var problems []*models.Problem
