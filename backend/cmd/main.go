@@ -70,6 +70,7 @@ func main() {
 	authMiddleware := middleware.NewAuthMiddleware(authService)
 
 	r := mux.NewRouter()
+	r.Use(CORSMiddleware)
 
 	// auth
 	r.HandleFunc("/api/auth/register", authHandler.Register).Methods("POST")
@@ -96,7 +97,7 @@ func main() {
 	protectedRouter.HandleFunc("/subjects/{id}", subjectHandler.UpdateSubject).Methods("PUT")
 	protectedRouter.HandleFunc("/subjects/{id}", subjectHandler.DeleteSubject).Methods("DELETE")
 	protectedRouter.HandleFunc("/subjects/join", subjectHandler.JoinSubject).Methods("POST")
-	protectedRouter.HandleFunc("/subjects/my", subjectHandler.GetMySubjects).Methods("GET")
+	protectedRouter.HandleFunc("/subjects/get/my", subjectHandler.GetMySubjects).Methods("GET")
 
 	// роль
 	protectedRouter.HandleFunc("/subjects/{id}/roles/{roleId}/change", roleHandler.ChangeRole).Methods("POST")
@@ -124,4 +125,20 @@ func main() {
 
 	log.Printf("Server starting on port %s", cfg.Server.Port)
 	log.Fatal(http.ListenAndServe(":"+cfg.Server.Port, r))
+}
+
+func CORSMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Установка CORS-заголовков
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+		w.Header().Set("Content-Type", "application/json")
+		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS, PATCH")
+		// Обработка предзапросов
+		if r.Method == http.MethodOptions {
+			w.WriteHeader(http.StatusNoContent)
+			return
+		}
+		next.ServeHTTP(w, r)
+	})
 }
