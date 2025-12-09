@@ -34,6 +34,8 @@ func (m *GormMigrator) Migrate() error {
 		&models.Task{},
 		&models.Project{},
 		&models.ProjectMember{},
+		&models.Problem{},
+		&models.ProblemAssignee{},
 	)
 	return err
 }

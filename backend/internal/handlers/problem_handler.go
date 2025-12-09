@@ -1,0 +1,236 @@
+package handlers
+
+import (
+	"encoding/json"
+	"net/http"
+
+	"github.com/go-playground/validator/v10"
+	"github.com/google/uuid"
+	"github.com/gorilla/mux"
+	"github.com/wozhdeleniye/redclass-app/internal/models"
+	"github.com/wozhdeleniye/redclass-app/internal/services"
+)
+
+type ProblemHandler struct {
+	problemService *services.ProblemService
+	validate       *validator.Validate
+}
+
+func NewProblemHandler(ps *services.ProblemService) *ProblemHandler {
+	return &ProblemHandler{problemService: ps, validate: validator.New()}
+}
+
+// CreateProblem создает проблему в проекте (POST /api/projects/{projectId}/problems)
+func (h *ProblemHandler) CreateProblem(w http.ResponseWriter, r *http.Request) {
+	userID, ok := r.Context().Value("user_id").(uuid.UUID)
+	if !ok {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	vars := mux.Vars(r)
+	projectIDStr := vars["projectId"]
+	projectID, err := uuid.Parse(projectIDStr)
+	if err != nil {
+		http.Error(w, "Invalid project ID", http.StatusBadRequest)
+		return
+	}
+
+	var req models.CreateProblemRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+	if err := h.validate.Struct(req); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	problem, err := h.problemService.CreateProblem(r.Context(), userID, projectID, nil, &req)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(problem)
+}
+
+// CreateSubproblem создает подпроблему (POST /api/problems/{parentId}/subproblems)
+func (h *ProblemHandler) CreateSubproblem(w http.ResponseWriter, r *http.Request) {
+	userID, ok := r.Context().Value("user_id").(uuid.UUID)
+	if !ok {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	vars := mux.Vars(r)
+	parentIDStr := vars["parentId"]
+	parentID, err := uuid.Parse(parentIDStr)
+	if err != nil {
+		http.Error(w, "Invalid parent ID", http.StatusBadRequest)
+		return
+	}
+
+	var req models.CreateProblemRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+	if err := h.validate.Struct(req); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	// Получаем родительскую проблему чтобы узнать projectID
+	parentProblem, err := h.problemService.GetProblemByIDDirect(r.Context(), parentID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	problem, err := h.problemService.CreateProblem(r.Context(), userID, parentProblem.ProjectID, &parentID, &req)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(problem)
+}
+
+// UpdateProblem обновляет проблему (PUT /api/problems/{problemId})
+func (h *ProblemHandler) UpdateProblem(w http.ResponseWriter, r *http.Request) {
+	userID, ok := r.Context().Value("user_id").(uuid.UUID)
+	if !ok {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	vars := mux.Vars(r)
+	problemIDStr := vars["problemId"]
+	problemID, err := uuid.Parse(problemIDStr)
+	if err != nil {
+		http.Error(w, "Invalid problem ID", http.StatusBadRequest)
+		return
+	}
+
+	var req models.UpdateProblemRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+
+	problem, err := h.problemService.UpdateProblem(r.Context(), userID, problemID, &req)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(problem)
+}
+
+// DeleteProblem удаляет проблему (DELETE /api/problems/{problemId})
+func (h *ProblemHandler) DeleteProblem(w http.ResponseWriter, r *http.Request) {
+	userID, ok := r.Context().Value("user_id").(uuid.UUID)
+	if !ok {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	vars := mux.Vars(r)
+	problemIDStr := vars["problemId"]
+	problemID, err := uuid.Parse(problemIDStr)
+	if err != nil {
+		http.Error(w, "Invalid problem ID", http.StatusBadRequest)
+		return
+	}
+
+	if err := h.problemService.DeleteProblem(r.Context(), userID, problemID); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+}
+
+// GetProblem получает проблему по ID (GET /api/problems/{problemId})
+func (h *ProblemHandler) GetProblem(w http.ResponseWriter, r *http.Request) {
+	userID, ok := r.Context().Value("user_id").(uuid.UUID)
+	if !ok {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	vars := mux.Vars(r)
+	problemIDStr := vars["problemId"]
+	problemID, err := uuid.Parse(problemIDStr)
+	if err != nil {
+		http.Error(w, "Invalid problem ID", http.StatusBadRequest)
+		return
+	}
+
+	problem, err := h.problemService.GetProblem(r.Context(), userID, problemID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(problem)
+}
+
+// GetProjectProblems получает все проблемы проекта (GET /api/projects/{projectId}/problems)
+func (h *ProblemHandler) GetProjectProblems(w http.ResponseWriter, r *http.Request) {
+	userID, ok := r.Context().Value("user_id").(uuid.UUID)
+	if !ok {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	vars := mux.Vars(r)
+	projectIDStr := vars["projectId"]
+	projectID, err := uuid.Parse(projectIDStr)
+	if err != nil {
+		http.Error(w, "Invalid project ID", http.StatusBadRequest)
+		return
+	}
+
+	problems, err := h.problemService.GetProjectProblems(r.Context(), userID, projectID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(problems)
+}
+
+// GetMainProblem получает главную проблему проекта (GET /api/projects/{projectId}/problems/main)
+func (h *ProblemHandler) GetMainProblem(w http.ResponseWriter, r *http.Request) {
+	userID, ok := r.Context().Value("user_id").(uuid.UUID)
+	if !ok {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	vars := mux.Vars(r)
+	projectIDStr := vars["projectId"]
+	projectID, err := uuid.Parse(projectIDStr)
+	if err != nil {
+		http.Error(w, "Invalid project ID", http.StatusBadRequest)
+		return
+	}
+
+	problem, err := h.problemService.GetMainProblem(r.Context(), userID, projectID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(problem)
+}

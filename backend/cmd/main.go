@@ -50,19 +50,22 @@ func main() {
 	roleRepo := postgres.NewRoleRepository(db)
 	taskRepo := postgres.NewTaskRepository(db)
 	projectRepo := postgres.NewProjectRepository(db)
+	problemRepo := postgres.NewProblemRepository(db)
 	tokenRepo := redisrepo.NewTokenRepository(redisClient)
 
 	authService := services.NewAuthService(userRepo, tokenRepo, cfg.JWT)
 	subjectService := services.NewSubjectService(subjectRepo, roleRepo, userRepo)
 	roleService := services.NewRoleService(roleRepo)
 	taskService := services.NewTaskService(taskRepo, roleRepo, subjectRepo)
-	projectService := services.NewProjectService(projectRepo, taskRepo, roleRepo)
+	projectService := services.NewProjectService(projectRepo, taskRepo, roleRepo, problemRepo)
+	problemService := services.NewProblemService(problemRepo, projectRepo)
 
 	authHandler := handlers.NewAuthHandler(authService)
 	subjectHandler := handlers.NewSubjectHandler(subjectService)
 	roleHandler := handlers.NewRoleHandler(roleService)
 	taskHandler := handlers.NewTaskHandler(taskService)
 	projectHandler := handlers.NewProjectHandler(projectService)
+	problemHandler := handlers.NewProblemHandler(problemService)
 
 	authMiddleware := middleware.NewAuthMiddleware(authService)
 
@@ -99,7 +102,7 @@ func main() {
 	protectedRouter.HandleFunc("/subjects/{id}/roles/{roleId}/change", roleHandler.ChangeRole).Methods("POST")
 	protectedRouter.HandleFunc("/subjects/{id}/roles/{roleId}", roleHandler.RemoveFromSubject).Methods("DELETE")
 
-	// задачи
+	// задания
 	protectedRouter.HandleFunc("/subjects/{id}/tasks", taskHandler.CreateTask).Methods("POST")
 	protectedRouter.HandleFunc("/tasks/{taskId}", taskHandler.UpdateTask).Methods("PUT")
 	protectedRouter.HandleFunc("/tasks/{taskId}", taskHandler.DeleteTask).Methods("DELETE")
@@ -109,6 +112,15 @@ func main() {
 	protectedRouter.HandleFunc("/tasks/{taskId}/projects", projectHandler.CreateProject).Methods("POST")
 	protectedRouter.HandleFunc("/projects/join", projectHandler.JoinProject).Methods("POST")
 	protectedRouter.HandleFunc("/projects/my", projectHandler.GetMyProjects).Methods("GET")
+
+	// проблемы
+	protectedRouter.HandleFunc("/projects/{projectId}/problems", problemHandler.GetProjectProblems).Methods("GET")
+	protectedRouter.HandleFunc("/projects/{projectId}/problems/main", problemHandler.GetMainProblem).Methods("GET")
+	protectedRouter.HandleFunc("/projects/{projectId}/problems", problemHandler.CreateProblem).Methods("POST")
+	protectedRouter.HandleFunc("/problems/{problemId}", problemHandler.GetProblem).Methods("GET")
+	protectedRouter.HandleFunc("/problems/{problemId}", problemHandler.UpdateProblem).Methods("PUT")
+	protectedRouter.HandleFunc("/problems/{problemId}", problemHandler.DeleteProblem).Methods("DELETE")
+	protectedRouter.HandleFunc("/problems/{parentId}/subproblems", problemHandler.CreateSubproblem).Methods("POST")
 
 	log.Printf("Server starting on port %s", cfg.Server.Port)
 	log.Fatal(http.ListenAndServe(":"+cfg.Server.Port, r))

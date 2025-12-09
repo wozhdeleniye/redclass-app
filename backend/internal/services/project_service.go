@@ -16,13 +16,15 @@ type ProjectService struct {
 	projectRepo *postgres.ProjectRepository
 	taskRepo    *postgres.TaskRepository
 	roleRepo    *postgres.RoleRepository
+	problemRepo *postgres.ProblemRepository
 }
 
-func NewProjectService(pr *postgres.ProjectRepository, tr *postgres.TaskRepository, rr *postgres.RoleRepository) *ProjectService {
+func NewProjectService(pr *postgres.ProjectRepository, tr *postgres.TaskRepository, rr *postgres.RoleRepository, prr *postgres.ProblemRepository) *ProjectService {
 	return &ProjectService{
 		projectRepo: pr,
 		taskRepo:    tr,
 		roleRepo:    rr,
+		problemRepo: prr,
 	}
 }
 
@@ -99,6 +101,19 @@ func (s *ProjectService) CreateProject(ctx context.Context, userID, taskID uuid.
 		UpdatedAt: time.Now(),
 	}
 	if err := s.projectRepo.AddMember(ctx, member); err != nil {
+		return nil, err
+	}
+
+	// Загружаем Task для создания главной проблемы
+	task, err = s.taskRepo.GetByID(ctx, project.TaskID)
+	if err != nil {
+		return nil, err
+	}
+	project.Task = task
+
+	// Создаем главную проблему
+	problemService := NewProblemService(s.problemRepo, s.projectRepo)
+	if _, err := problemService.CreateMainProblem(ctx, project); err != nil {
 		return nil, err
 	}
 
