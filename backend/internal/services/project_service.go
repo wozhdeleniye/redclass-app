@@ -104,14 +104,12 @@ func (s *ProjectService) CreateProject(ctx context.Context, userID, taskID uuid.
 		return nil, err
 	}
 
-	// Загружаем Task для создания главной проблемы
 	task, err = s.taskRepo.GetByID(ctx, project.TaskID)
 	if err != nil {
 		return nil, err
 	}
 	project.Task = task
 
-	// Создаем главную проблему
 	problemService := NewProblemService(s.problemRepo, s.projectRepo)
 	if _, err := problemService.CreateMainProblem(ctx, project); err != nil {
 		return nil, err
@@ -137,14 +135,6 @@ func (s *ProjectService) JoinProject(ctx context.Context, userID uuid.UUID, code
 		return nil, errors.New("user is already a member of this project")
 	}
 
-	//existingProject, err := s.projectRepo.GetUserProjectByTask(ctx, userID, project.TaskID)
-	//if err != nil {
-	//	return nil, err
-	//}
-	//if existingProject != nil {
-	//	return nil, errors.New("user can only be in one project per task")
-	//}
-
 	member := &models.ProjectMember{
 		ID:        uuid.New(),
 		ProjectID: project.ID,
@@ -168,7 +158,6 @@ func (s *ProjectService) GetUserProjects(ctx context.Context, userID uuid.UUID) 
 	return s.projectRepo.GetUserProjects(ctx, userID)
 }
 
-// GetProjectUsers возвращает список пользователей, которые являются участниками проекта
 func (s *ProjectService) GetProjectUsers(ctx context.Context, projectID uuid.UUID) ([]*models.User, error) {
 	members, err := s.projectRepo.GetMembersByProject(ctx, projectID)
 	if err != nil {

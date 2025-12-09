@@ -180,7 +180,6 @@ func (h *ProblemHandler) GetProblem(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	var result *models.Result
-	// Также пытаемся получить результат для этой проблемы (может отсутствовать)
 	if problem.Solved {
 		if h.resultService != nil {
 			res, err := h.resultService.GetResult(r.Context(), userID, problemID)
@@ -190,10 +189,8 @@ func (h *ProblemHandler) GetProblem(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	// Получаем статистику по дочерним проблемам
 	childStats, err := h.problemService.GetChildrenStatistics(r.Context(), problemID)
 	if err != nil {
-		// Ошибка при получении статистики не критична
 		childStats = &models.ChildrenStatistics{}
 	}
 
@@ -226,8 +223,6 @@ func (h *ProblemHandler) GetProjectProblems(w http.ResponseWriter, r *http.Reque
 		http.Error(w, "Invalid project ID", http.StatusBadRequest)
 		return
 	}
-
-	// Параметр query `assigned_only` — если true, вернуть только проблемы, назначенные на текущего пользователя
 	q := r.URL.Query()
 	assignedOnly := false
 	if v := q.Get("assigned_only"); v == "1" || v == "true" || v == "True" {

@@ -181,7 +181,6 @@ func (r *ProblemRepository) GetProjectStatistics(ctx context.Context, projectID 
 	var completed int64
 	var total int64
 
-	// Получаем общее количество проблем
 	if err := r.db.WithContext(ctx).
 		Model(&models.Problem{}).
 		Where("project_id = ?", projectID).
@@ -189,7 +188,6 @@ func (r *ProblemRepository) GetProjectStatistics(ctx context.Context, projectID 
 		return nil, err
 	}
 
-	// Получаем количество выполненных проблем
 	if err := r.db.WithContext(ctx).
 		Model(&models.Problem{}).
 		Where("project_id = ? AND solved = true", projectID).
@@ -216,7 +214,6 @@ func (r *ProblemRepository) GetChildrenStatistics(ctx context.Context, parentID 
 	var completed int64
 	var total int64
 
-	// Получаем общее количество дочерних проблем
 	if err := r.db.WithContext(ctx).
 		Model(&models.Problem{}).
 		Where("parent_id = ?", parentID).
@@ -224,7 +221,6 @@ func (r *ProblemRepository) GetChildrenStatistics(ctx context.Context, parentID 
 		return nil, err
 	}
 
-	// Получаем количество выполненных дочерних проблем
 	if err := r.db.WithContext(ctx).
 		Model(&models.Problem{}).
 		Where("parent_id = ? AND solved = true", parentID).

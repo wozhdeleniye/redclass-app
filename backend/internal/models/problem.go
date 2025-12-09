@@ -10,13 +10,13 @@ import (
 type Problem struct {
 	ID          uuid.UUID      `json:"id" gorm:"type:uuid;primary_key;default:gen_random_uuid()"`
 	ProjectID   uuid.UUID      `json:"project_id" gorm:"type:uuid;not null;index"`
-	ParentID    *uuid.UUID     `json:"parent_id" gorm:"type:uuid;index"` // null для главной проблемы
+	ParentID    *uuid.UUID     `json:"parent_id" gorm:"type:uuid;index"`
 	CreatorID   uuid.UUID      `json:"creator_id" gorm:"type:uuid;not null;index"`
-	Number      int            `json:"number" gorm:"not null"` // порядковый номер в проекте
+	Number      int            `json:"number" gorm:"not null"`
 	Title       string         `json:"title" gorm:"not null"`
 	Description string         `json:"description"`
-	StartTime   time.Time      `json:"start_time" gorm:"not null"` // >= родительского start_time
-	EndTime     time.Time      `json:"end_time" gorm:"not null"`   // <= родительского end_time
+	StartTime   time.Time      `json:"start_time" gorm:"not null"`
+	EndTime     time.Time      `json:"end_time" gorm:"not null"`
 	Solved      bool           `json:"solved" gorm:"not null;default:false"`
 	CreatedAt   time.Time      `json:"created_at"`
 	UpdatedAt   time.Time      `json:"updated_at"`
@@ -57,15 +57,13 @@ type UpdateProblemRequest struct {
 	AssigneeIDs *[]uuid.UUID `json:"assignee_ids"`
 }
 
-// ProblemStatistics содержит статистику по проблемам
 type ProblemStatistics struct {
 	Completed  int `json:"completed"`
 	Incomplete int `json:"incomplete"`
 	Total      int `json:"total"`
-	Percentage int `json:"percentage"` // процент выполненных (0-100)
+	Percentage int `json:"percentage"`
 }
 
-// ChildrenStatistics содержит статистику по дочерним проблемам
 type ChildrenStatistics struct {
 	Completed  int `json:"completed"`
 	Incomplete int `json:"incomplete"`

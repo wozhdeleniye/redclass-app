@@ -7,7 +7,6 @@ import (
 	"gorm.io/gorm"
 )
 
-// Result представляет результат выполнения проблемы (1:1 с Problem)
 type Result struct {
 	ID        uuid.UUID      `json:"id" gorm:"type:uuid;primary_key;default:gen_random_uuid()"`
 	ProblemID uuid.UUID      `json:"problem_id" gorm:"type:uuid;not null;uniqueIndex"`

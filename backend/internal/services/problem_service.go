@@ -64,7 +64,6 @@ func (s *ProblemService) CreateProblem(
 	parentID *uuid.UUID,
 	req *models.CreateProblemRequest,
 ) (*models.Problem, error) {
-	// Проверяем, что пользователь член проекта
 	project, err := s.projectRepo.GetByID(ctx, projectID)
 	if err != nil {
 		return nil, err
@@ -81,7 +80,6 @@ func (s *ProblemService) CreateProblem(
 		return nil, errors.New("user is not a project member")
 	}
 
-	// Получаем главную проблему для валидации времени
 	mainProblem, err := s.problemRepo.GetMainProblemByProject(ctx, projectID)
 	if err != nil {
 		return nil, err
@@ -90,7 +88,6 @@ func (s *ProblemService) CreateProblem(
 		return nil, errors.New("main problem not found")
 	}
 
-	// Устанавливаем время по умолчанию
 	startTime := mainProblem.StartTime
 	endTime := mainProblem.EndTime
 
@@ -101,7 +98,6 @@ func (s *ProblemService) CreateProblem(
 		endTime = *req.EndTime
 	}
 
-	// Валидируем время
 	if startTime.Before(mainProblem.StartTime) {
 		return nil, errors.New("start_time cannot be earlier than main problem start_time")
 	}
@@ -112,7 +108,6 @@ func (s *ProblemService) CreateProblem(
 		return nil, errors.New("start_time cannot be after end_time")
 	}
 
-	// Получаем следующий номер
 	number, err := s.problemRepo.GetNextNumber(ctx, projectID)
 	if err != nil {
 		return nil, err
@@ -134,10 +129,8 @@ func (s *ProblemService) CreateProblem(
 		return nil, err
 	}
 
-	// Добавляем назначенных пользователей
 	if len(req.AssigneeIDs) > 0 {
 		for _, assigneeID := range req.AssigneeIDs {
-			// Проверяем, что назначаемый пользователь - член проекта
 			isMember, err := s.projectRepo.IsUserMember(ctx, projectID, assigneeID)
 			if err != nil {
 				return nil, err
@@ -170,13 +163,11 @@ func (s *ProblemService) UpdateProblem(
 		return nil, errors.New("problem not found")
 	}
 
-	// Получаем главную проблему для валидации времени
 	mainProblem, err := s.problemRepo.GetMainProblemByProject(ctx, problem.ProjectID)
 	if err != nil {
 		return nil, err
 	}
 
-	// Обновляем поля
 	if req.Title != nil {
 		problem.Title = *req.Title
 	}
@@ -184,7 +175,6 @@ func (s *ProblemService) UpdateProblem(
 		problem.Description = *req.Description
 	}
 
-	// Обновляем время с валидацией
 	if req.StartTime != nil {
 		if req.StartTime.Before(mainProblem.StartTime) {
 			return nil, errors.New("start_time cannot be earlier than main problem start_time")
@@ -202,16 +192,13 @@ func (s *ProblemService) UpdateProblem(
 		return nil, errors.New("start_time cannot be after end_time")
 	}
 
-	// Обновляем назначенных
 	if req.AssigneeIDs != nil {
-		// Удаляем старых
 		existingAssignees, err := s.problemRepo.GetAssignees(ctx, problemID)
 		if err != nil {
 			return nil, err
 		}
 
 		for _, existing := range existingAssignees {
-			// Проверяем, находится ли в новом списке
 			found := false
 			for _, newID := range *req.AssigneeIDs {
 				if existing.UserID == newID {
@@ -226,7 +213,6 @@ func (s *ProblemService) UpdateProblem(
 			}
 		}
 
-		// Добавляем новых
 		for _, assigneeID := range *req.AssigneeIDs {
 			if _, err := s.problemRepo.AddAssignee(ctx, problemID, assigneeID); err != nil {
 				return nil, err
@@ -251,7 +237,6 @@ func (s *ProblemService) DeleteProblem(ctx context.Context, userID uuid.UUID, pr
 		return errors.New("problem not found")
 	}
 
-	// Проверяем права: создатель проблемы или создатель проекта
 	project, err := s.projectRepo.GetByID(ctx, problem.ProjectID)
 	if err != nil {
 		return err
@@ -299,7 +284,6 @@ func (s *ProblemService) GetProblemByIDDirect(ctx context.Context, problemID uui
 
 // GetSubproblems получает все дочерние проблемы для родительской проблемы
 func (s *ProblemService) GetSubproblems(ctx context.Context, userID uuid.UUID, parentID uuid.UUID) ([]*models.Problem, error) {
-	// Получаем родительскую проблему
 	parent, err := s.problemRepo.GetByID(ctx, parentID)
 	if err != nil {
 		return nil, err
