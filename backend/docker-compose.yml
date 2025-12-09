@@ -1,0 +1,78 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: postgres_db_redclass
+    environment:
+      POSTGRES_DB: mydatabase
+      POSTGRES_USER: myuser
+      POSTGRES_PASSWORD: mypassword
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - app-network
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    container_name: redis_cache_redclass
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - app-network
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+
+  adminer:
+    image: adminer:4.8.1
+    container_name: adminer_ui_redclass
+    ports:
+      - "8080:8080"
+    environment:
+      ADMINER_DEFAULT_SERVER: postgres
+    networks:
+      - app-network
+    restart: unless-stopped
+    depends_on:
+      - postgres
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: app_redclass
+    ports:
+      - "8085:8085"
+    environment:
+      SERVER_PORT: "8085"
+      DB_HOST: "postgres_db_redclass"
+      DB_PORT: "5432"
+      DB_USER: "myuser"
+      DB_PASSWORD: "mypassword"
+      DB_NAME: "mydatabase"
+      DB_SSL_MODE: "disable"
+      REDIS_HOST: "redis_cache_redclass"
+      REDIS_PORT: "6379"
+      REDIS_PASSWORD: ""
+      REDIS_DB: "0"
+      JWT_ACCESS_SECRET: "your-secret-key-change-in-production"
+      JWT_REFRESH_SECRET: "your-refresh-secret-change-in-production"
+    networks:
+      - app-network
+    restart: unless-stopped
+    depends_on:
+      - postgres
+      - redis
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  app-network:
+    driver: bridge
