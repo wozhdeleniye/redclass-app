@@ -175,3 +175,68 @@ func (r *ProblemRepository) GetMainProblemByProject(ctx context.Context, project
 	}
 	return &problem, nil
 }
+
+// GetProjectStatistics получает статистику по всем проблемам проекта
+func (r *ProblemRepository) GetProjectStatistics(ctx context.Context, projectID uuid.UUID) (*models.ProblemStatistics, error) {
+	var completed int64
+	var total int64
+
+	// Получаем общее количество проблем
+	if err := r.db.WithContext(ctx).
+		Model(&models.Problem{}).
+		Where("project_id = ?", projectID).
+		Count(&total).Error; err != nil {
+		return nil, err
+	}
+
+	// Получаем количество выполненных проблем
+	if err := r.db.WithContext(ctx).
+		Model(&models.Problem{}).
+		Where("project_id = ? AND solved = true", projectID).
+		Count(&completed).Error; err != nil {
+		return nil, err
+	}
+
+	incomplete := total - completed
+	percentage := 0
+	if total > 0 {
+		percentage = int((completed * 100) / total)
+	}
+
+	return &models.ProblemStatistics{
+		Completed:  int(completed),
+		Incomplete: int(incomplete),
+		Total:      int(total),
+		Percentage: percentage,
+	}, nil
+}
+
+// GetChildrenStatistics получает статистику по дочерним проблемам
+func (r *ProblemRepository) GetChildrenStatistics(ctx context.Context, parentID uuid.UUID) (*models.ChildrenStatistics, error) {
+	var completed int64
+	var total int64
+
+	// Получаем общее количество дочерних проблем
+	if err := r.db.WithContext(ctx).
+		Model(&models.Problem{}).
+		Where("parent_id = ?", parentID).
+		Count(&total).Error; err != nil {
+		return nil, err
+	}
+
+	// Получаем количество выполненных дочерних проблем
+	if err := r.db.WithContext(ctx).
+		Model(&models.Problem{}).
+		Where("parent_id = ? AND solved = true", parentID).
+		Count(&completed).Error; err != nil {
+		return nil, err
+	}
+
+	incomplete := total - completed
+
+	return &models.ChildrenStatistics{
+		Completed:  int(completed),
+		Incomplete: int(incomplete),
+		Total:      int(total),
+	}, nil
+}

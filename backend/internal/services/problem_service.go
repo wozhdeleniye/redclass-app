@@ -170,16 +170,6 @@ func (s *ProblemService) UpdateProblem(
 		return nil, errors.New("problem not found")
 	}
 
-	// Проверяем права: создатель проблемы или создатель проекта
-	project, err := s.projectRepo.GetByID(ctx, problem.ProjectID)
-	if err != nil {
-		return nil, err
-	}
-
-	if problem.CreatorID != userID && project.CreatorID != userID {
-		return nil, errors.New("only creator or project owner can update problem")
-	}
-
 	// Получаем главную проблему для валидации времени
 	mainProblem, err := s.problemRepo.GetMainProblemByProject(ctx, problem.ProjectID)
 	if err != nil {
@@ -238,15 +228,6 @@ func (s *ProblemService) UpdateProblem(
 
 		// Добавляем новых
 		for _, assigneeID := range *req.AssigneeIDs {
-			// Проверяем, что назначаемый пользователь - член проекта
-			isMember, err := s.projectRepo.IsUserMember(ctx, problem.ProjectID, assigneeID)
-			if err != nil {
-				return nil, err
-			}
-			if !isMember {
-				return nil, fmt.Errorf("user %s is not a project member", assigneeID)
-			}
-
 			if _, err := s.problemRepo.AddAssignee(ctx, problemID, assigneeID); err != nil {
 				return nil, err
 			}
@@ -293,28 +274,11 @@ func (s *ProblemService) GetProblem(ctx context.Context, userID uuid.UUID, probl
 		return nil, errors.New("problem not found")
 	}
 
-	// Проверяем, что пользователь член проекта
-	isMember, err := s.projectRepo.IsUserMember(ctx, problem.ProjectID, userID)
-	if err != nil {
-		return nil, err
-	}
-	if !isMember {
-		return nil, errors.New("user is not a project member")
-	}
-
 	return problem, nil
 }
 
 // GetProjectProblems получает все проблемы проекта
 func (s *ProblemService) GetProjectProblems(ctx context.Context, userID uuid.UUID, projectID uuid.UUID, assignedOnly bool) ([]*models.Problem, error) {
-	// Проверяем, что пользователь член проекта
-	isMember, err := s.projectRepo.IsUserMember(ctx, projectID, userID)
-	if err != nil {
-		return nil, err
-	}
-	if !isMember {
-		return nil, errors.New("user is not a project member")
-	}
 
 	if assignedOnly {
 		return s.problemRepo.GetProjectProblemsAssigned(ctx, projectID, userID)
@@ -325,15 +289,6 @@ func (s *ProblemService) GetProjectProblems(ctx context.Context, userID uuid.UUI
 
 // GetMainProblem получает главную проблему проекта
 func (s *ProblemService) GetMainProblem(ctx context.Context, userID uuid.UUID, projectID uuid.UUID) (*models.Problem, error) {
-	// Проверяем, что пользователь член проекта
-	isMember, err := s.projectRepo.IsUserMember(ctx, projectID, userID)
-	if err != nil {
-		return nil, err
-	}
-	if !isMember {
-		return nil, errors.New("user is not a project member")
-	}
-
 	return s.problemRepo.GetMainProblemByProject(ctx, projectID)
 }
 
@@ -353,14 +308,15 @@ func (s *ProblemService) GetSubproblems(ctx context.Context, userID uuid.UUID, p
 		return nil, errors.New("parent problem not found")
 	}
 
-	// Проверяем, что пользователь член проекта
-	isMember, err := s.projectRepo.IsUserMember(ctx, parent.ProjectID, userID)
-	if err != nil {
-		return nil, err
-	}
-	if !isMember {
-		return nil, errors.New("user is not a project member")
-	}
-
 	return s.problemRepo.GetChildProblems(ctx, parentID)
+}
+
+// GetProjectStatistics возвращает статистику по всем проблемам проекта
+func (s *ProblemService) GetProjectStatistics(ctx context.Context, userID uuid.UUID, projectID uuid.UUID) (*models.ProblemStatistics, error) {
+	return s.problemRepo.GetProjectStatistics(ctx, projectID)
+}
+
+// GetChildrenStatistics возвращает статистику по дочерним проблемам
+func (s *ProblemService) GetChildrenStatistics(ctx context.Context, parentID uuid.UUID) (*models.ChildrenStatistics, error) {
+	return s.problemRepo.GetChildrenStatistics(ctx, parentID)
 }

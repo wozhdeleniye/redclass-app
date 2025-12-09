@@ -124,6 +124,7 @@ func main() {
 
 	// проблемы
 	protectedRouter.HandleFunc("/projects/{projectId}/problems", problemHandler.GetProjectProblems).Methods("GET", "OPTIONS")
+	protectedRouter.HandleFunc("/projects/{projectId}/statistics", problemHandler.GetProjectStatistics).Methods("GET", "OPTIONS")
 	protectedRouter.HandleFunc("/problems/{parentId}/subproblems", problemHandler.CreateSubproblem).Methods("POST", "OPTIONS")
 	protectedRouter.HandleFunc("/problems/{parentId}/subproblems", problemHandler.GetSubproblems).Methods("GET", "OPTIONS")
 

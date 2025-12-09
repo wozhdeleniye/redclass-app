@@ -56,3 +56,18 @@ type UpdateProblemRequest struct {
 	EndTime     *time.Time   `json:"end_time"`
 	AssigneeIDs *[]uuid.UUID `json:"assignee_ids"`
 }
+
+// ProblemStatistics содержит статистику по проблемам
+type ProblemStatistics struct {
+	Completed  int `json:"completed"`
+	Incomplete int `json:"incomplete"`
+	Total      int `json:"total"`
+	Percentage int `json:"percentage"` // процент выполненных (0-100)
+}
+
+// ChildrenStatistics содержит статистику по дочерним проблемам
+type ChildrenStatistics struct {
+	Completed  int `json:"completed"`
+	Incomplete int `json:"incomplete"`
+	Total      int `json:"total"`
+}

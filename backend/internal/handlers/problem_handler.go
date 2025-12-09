@@ -190,12 +190,21 @@ func (h *ProblemHandler) GetProblem(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	// Получаем статистику по дочерним проблемам
+	childStats, err := h.problemService.GetChildrenStatistics(r.Context(), problemID)
+	if err != nil {
+		// Ошибка при получении статистики не критична
+		childStats = &models.ChildrenStatistics{}
+	}
+
 	resp := struct {
-		Problem *models.Problem `json:"problem"`
-		Result  *models.Result  `json:"result,omitempty"`
+		Problem            *models.Problem            `json:"problem"`
+		Result             *models.Result             `json:"result,omitempty"`
+		ChildrenStatistics *models.ChildrenStatistics `json:"children_statistics,omitempty"`
 	}{
-		Problem: problem,
-		Result:  result,
+		Problem:            problem,
+		Result:             result,
+		ChildrenStatistics: childStats,
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -285,4 +294,30 @@ func (h *ProblemHandler) GetSubproblems(w http.ResponseWriter, r *http.Request) 
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(problems)
+}
+
+// GetProjectStatistics получает статистику по всем проблемам проекта (GET /api/projects/{projectId}/statistics)
+func (h *ProblemHandler) GetProjectStatistics(w http.ResponseWriter, r *http.Request) {
+	userID, ok := r.Context().Value("user_id").(uuid.UUID)
+	if !ok {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	vars := mux.Vars(r)
+	projectIDStr := vars["projectId"]
+	projectID, err := uuid.Parse(projectIDStr)
+	if err != nil {
+		http.Error(w, "Invalid project ID", http.StatusBadRequest)
+		return
+	}
+
+	stats, err := h.problemService.GetProjectStatistics(r.Context(), userID, projectID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(stats)
 }
